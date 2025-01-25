@@ -1,0 +1,199 @@
+local Library = {}
+
+function Library:CreateHub(title)
+    local Hub = {}
+
+    -- Main Frame
+    local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+    ScreenGui.Name = "KhenHub"
+
+    local MainFrame = Instance.new("Frame")
+    MainFrame.Size = UDim2.new(0.35, 0, 0.5, 0)
+    MainFrame.Position = UDim2.new(0.325, 0, 0.25, 0)
+    MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    MainFrame.Parent = ScreenGui
+    MainFrame.ClipsDescendants = true
+
+    -- Title Bar
+    local TitleBar = Instance.new("TextLabel")
+    TitleBar.Size = UDim2.new(1, 0, 0.1, 0)
+    TitleBar.Text = title
+    TitleBar.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    TitleBar.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TitleBar.Font = Enum.Font.GothamBold
+    TitleBar.TextScaled = true
+    TitleBar.Parent = MainFrame
+
+    -- Sidebar
+    local Sidebar = Instance.new("Frame")
+    Sidebar.Size = UDim2.new(0.3, 0, 0.9, 0)
+    Sidebar.Position = UDim2.new(0, 0, 0.1, 0)
+    Sidebar.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    Sidebar.Parent = MainFrame
+
+    -- Tab Buttons
+    local TabButtonsContainer = Instance.new("Frame")
+    TabButtonsContainer.Size = UDim2.new(1, 0, 0.1, 0)
+    TabButtonsContainer.Position = UDim2.new(0, 0, 0.1, 0)
+    TabButtonsContainer.BackgroundTransparency = 1
+    TabButtonsContainer.Parent = MainFrame
+
+    local Tabs = {}
+
+    -- Content
+    local Content = Instance.new("Frame")
+    Content.Size = UDim2.new(1, 0, 0.9, 0)
+    Content.Position = UDim2.new(0, 0, 0.2, 0)
+    Content.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    Content.Parent = MainFrame
+
+    -- Add a Tab
+    function Hub:AddTab(tabName, contentFrame)
+        -- Create Tab Button
+        local TabButton = Instance.new("TextButton")
+        TabButton.Size = UDim2.new(0.33, 0, 1, 0)
+        TabButton.Text = tabName
+        TabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        TabButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+        TabButton.Font = Enum.Font.Gotham
+        TabButton.TextScaled = true
+        TabButton.Parent = TabButtonsContainer
+
+        -- Content Frame for Tab
+        contentFrame.Visible = false
+        contentFrame.Parent = Content
+
+        -- Show content when clicked
+        TabButton.MouseButton1Click:Connect(function()
+            -- Hide all content
+            for _, tab in pairs(Tabs) do
+                tab.Content.Visible = false
+            end
+            -- Show the content for the clicked tab
+            contentFrame.Visible = true
+        end)
+
+        -- Store tab in Tabs
+        Tabs[tabName] = { Button = TabButton, Content = contentFrame }
+    end
+
+    Hub.ScreenGui = ScreenGui
+    Hub.MainFrame = MainFrame
+    Hub.Content = Content
+    return Hub
+end
+
+-- Thêm các chức năng như AddSidebarButton, AddToggle, AddDropdown
+function Library:AddSidebarButton(window, text, callback)
+    local Button = Instance.new("TextButton")
+    Button.Size = UDim2.new(1, 0, 0.1, 0)
+    Button.Text = text
+    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    Button.Font = Enum.Font.Gotham
+    Button.TextScaled = true
+    Button.Parent = window.MainFrame:FindFirstChild("Sidebar")
+
+    -- Corner effect
+    local ButtonCorner = Instance.new("UICorner")
+    ButtonCorner.CornerRadius = UDim.new(0, 8)
+    ButtonCorner.Parent = Button
+
+    Button.MouseButton1Click:Connect(function()
+        pcall(callback)
+    end)
+end
+
+function Library:AddToggle(window, text, default, callback)
+    local Toggle = Instance.new("Frame")
+    Toggle.Size = UDim2.new(0.9, 0, 0.1, 0)
+    Toggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    Toggle.Parent = window.Content
+
+    local Label = Instance.new("TextLabel")
+    Label.Size = UDim2.new(0.8, 0, 1, 0)
+    Label.Text = text
+    Label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Label.BackgroundTransparency = 1
+    Label.Font = Enum.Font.Gotham
+    Label.TextScaled = true
+    Label.Parent = Toggle
+
+    local ToggleButton = Instance.new("TextButton")
+    ToggleButton.Size = UDim2.new(0.2, 0, 0.8, 0)
+    ToggleButton.Position = UDim2.new(0.8, 0, 0.1, 0)
+    ToggleButton.Text = default and "ON" or "OFF"
+    ToggleButton.TextColor3 = default and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+    ToggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    ToggleButton.Font = Enum.Font.Gotham
+    ToggleButton.TextScaled = true
+    ToggleButton.Parent = Toggle
+
+    local ToggleCorner = Instance.new("UICorner")
+    ToggleCorner.CornerRadius = UDim.new(0, 8)
+    ToggleCorner.Parent = ToggleButton
+
+    local isOn = default
+    ToggleButton.MouseButton1Click:Connect(function()
+        isOn = not isOn
+        ToggleButton.Text = isOn and "ON" or "OFF"
+        ToggleButton.TextColor3 = isOn and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+        pcall(callback, isOn)
+    end)
+end
+
+function Library:AddDropdown(window, text, options, callback)
+    local Dropdown = Instance.new("Frame")
+    Dropdown.Size = UDim2.new(0.9, 0, 0.1, 0)
+    Dropdown.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    Dropdown.Parent = window.Content
+
+    local Label = Instance.new("TextLabel")
+    Label.Size = UDim2.new(0.8, 0, 1, 0)
+    Label.Text = text
+    Label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Label.BackgroundTransparency = 1
+    Label.Font = Enum.Font.Gotham
+    Label.TextScaled = true
+    Label.Parent = Dropdown
+
+    local Button = Instance.new("TextButton")
+    Button.Size = UDim2.new(0.2, 0, 0.8, 0)
+    Button.Position = UDim2.new(0.8, 0, 0.1, 0)
+    Button.Text = "Select"
+    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Button.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    Button.Font = Enum.Font.Gotham
+    Button.TextScaled = true
+    Button.Parent = Dropdown
+
+    -- Dropdown Menu
+    local Menu = Instance.new("Frame")
+    Menu.Size = UDim2.new(1, 0, 0, 0)
+    Menu.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    Menu.Parent = Dropdown
+    Menu.Visible = false
+
+    for i, option in pairs(options) do
+        local OptionButton = Instance.new("TextButton")
+        OptionButton.Size = UDim2.new(1, 0, 0, 20)
+        OptionButton.Text = option
+        OptionButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        OptionButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+        OptionButton.Font = Enum.Font.Gotham
+        OptionButton.TextScaled = true
+        OptionButton.Parent = Menu
+
+        OptionButton.MouseButton1Click:Connect(function()
+            Button.Text = option
+            Menu.Visible = false
+            pcall(callback, option)
+        end)
+    end
+
+    Button.MouseButton1Click:Connect(function()
+        Menu.Visible = not Menu.Visible
+    end)
+end
+
+return Library
